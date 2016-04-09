@@ -1,0 +1,36 @@
+library(dplyr)
+library(tidyr)
+
+titanic_original <- read.csv("titanic_original.csv", header=TRUE)
+titanic2 <- tbl_df(titanic_original)
+titanic2 %>% View()
+
+#1: The embarked column has one missing value; find this and replace it with S.
+summary(titanic2$embarked)
+titanic2$embarked[titanic2$embarked == ""] <- "S"
+summary(titanic2$embarked)
+
+#2: Calculate the mean of the Age column and use that value to populate the missing values
+
+meanage<-summarise(titanic2, mean(age, na.rm = TRUE))
+meanage
+titanic2$age[which(is.na(titanic2$age))] <- meanage
+titanic2 %>% View()
+
+#2b: Think about other ways you could have populated the missing values in the age column. Why would you pick any of those over the mean (or not)?
+# Other ways to populate missing values. i. Could have calculated different meansbased on teh other data, e.g. spouse/parents on board& applied the mean for those who fall in the same category. This would have been more accurate but more time consuming. ii. Calculated standard deviation and applied the standard deviation mean to all.
+
+#3: There are a lot of missing values in the boat column. Fill these empty slots with a dummy value e.g. NA
+# wasn't sure if NA should be a string or not; both NA  and "NA" seemed to work here
+
+titanic2$boat <- ifelse(titanic2$boat=="","NA",titanic2$boat)
+titanic2 %>% View()
+
+#4: Create a new column has_cabin_number which has 1 if there is a cabin number, and 0 otherwise.
+titanic2 <-
+titanic2 %>%
+  mutate(has_cabin_number=ifelse(titanic2$cabin=="",0,1))
+titanic2 %>% View()
+
+titanic2 <- data.frame(lapply(titanic2, as.character), stringsAsFactors=FALSE)
+write.table(titanic2, file = "C:\\Users\\catherine\\Desktop\\March 2016\\R\\3.1.7\\titanic_clean.csv",row.names=FALSE, col.names=FALSE, sep=",")
